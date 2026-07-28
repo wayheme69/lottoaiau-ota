@@ -1,0 +1,30 @@
+name: Update AU Lotto results
+
+on:
+  schedule:
+    # Tirages : Oz Lotto mardi ~20:30 AEST, Powerball jeudi ~20:30 AEST
+    # (10:30-12:30 UTC). On passe toutes les 2 h — l'API publie vite.
+    - cron: "15 */2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update results (échec BRUYANT si flux malade)
+        run: python3 scripts/update_aulotto.py
+      - name: Commit if changed
+        run: |
+          git config user.name "aulotto-bot"
+          git config user.email "actions@github.com"
+          if ! git diff --quiet aulotto_recent.json; then
+            git add aulotto_recent.json
+            git commit -m "Résultats AU $(date -u +%F)"
+            git push
+          else
+            echo "aucun changement"
+          fi
