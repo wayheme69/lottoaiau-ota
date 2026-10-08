@@ -17,12 +17,15 @@ jobs:
       - uses: actions/checkout@v4
       - name: Update results (échec BRUYANT si flux malade)
         run: python3 scripts/update_aulotto.py
+      # v5 app feed (dividends per division) — the v4 feed above must never break
+      - name: Results with dividends (v5)
+        run: python3 scripts/au_results.py
       - name: Commit if changed
         run: |
           git config user.name "aulotto-bot"
           git config user.email "actions@github.com"
-          if ! git diff --quiet aulotto_recent.json; then
-            git add aulotto_recent.json
+          if ! git diff --quiet aulotto_recent.json au_results.json; then
+            git add aulotto_recent.json au_results.json
             git commit -m "Résultats AU $(date -u +%F)"
             git push
           else
